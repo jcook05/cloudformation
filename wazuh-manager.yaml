@@ -1,0 +1,77 @@
+Parameters:
+  EnvironmentSize:
+    Type: String
+    Default: SMALL
+    AllowedValues:
+      - SMALL
+      - MEDIUM
+      - LARGE
+    Description: Select Environment Size (S,M,L)
+  Linux2AMI:
+    Type: String
+    Default: ami-0d6621c01e8c2de2c 
+  Key:
+    Type: String
+    Default: wazuh-test
+    Description:  Key to use.  Ensure you have access to the .pem file. 
+
+Mappings: 
+  InstanceSize:
+    SMALL:
+      "EC2" : "t2.micro" 
+    MEDIUM:
+      "EC2" : "t2.small"    
+    LARGE:
+      "EC2" : "t2.medium"
+
+Resources:
+  Bastion:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !Ref Linux2AMI
+      InstanceType: !FindInMap [InstanceSize, !Ref EnvironmentSize, EC2]
+      KeyName: !Ref Key
+      SecurityGroupIds:
+        - !ImportValue BastionSG
+      SubnetId: !Select [ 0, !Split [ ",", !ImportValue VdiSubnetIds ]] 
+      UserData:
+        "Fn::Base64":
+          !Sub |
+            #!/bin/bash
+            sudo yum update -y aws-cfn-bootstrap # good practice - always do this.
+            sudo yum -y update
+            sudo yum install -y git
+            sudo amazon-linux-extras install -y ansible2
+            cd /etc/ansible/roles/
+            git clone --branch v3.12.2_7.6.2 https://github.com/wazuh/wazuh-ansible.git          
+      Tags:
+        -
+          Key: Name
+          Value: Bastion Instance      
+  
+  Wazuh:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !Ref Linux2AMI
+      InstanceType: !FindInMap [InstanceSize, !Ref EnvironmentSize, EC2]
+      KeyName: !Ref Key
+      SecurityGroupIds:
+        - !ImportValue PrivateSG
+      SubnetId: !Select [ 1, !Split [ ",", !ImportValue VdiSubnetIds ]] 
+      
+      UserData:
+        "Fn::Base64":
+          !Sub |
+            #!/bin/bash
+            sudo yum update -y aws-cfn-bootstrap # good practice - always do this.
+            sudo yum -y update
+           
+      Tags:
+        -
+          Key: Name
+          Value: Wazuh Server
+
+
+    
+
+    

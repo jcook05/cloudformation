@@ -1,0 +1,30 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: WorkSpaces infrastructure
+
+Parameters:
+
+  UserName:
+    Type: String
+    Default: specialsauce
+  BundleId:
+    Type: String
+    Default: wsb-955ppdykw
+    Description: Workspace Bundle to use.  Default is the Linux Amazon 2 Standard bundle
+
+Resources:
+  workspace1:
+    Type: AWS::WorkSpaces::Workspace
+    Properties:
+      BundleId: !Ref BundleId
+      DirectoryId: !ImportValue DirectoryId
+      UserName: !Ref UserName
+      WorkspaceProperties:
+        ComputeTypeName: STANDARD
+        RootVolumeSizeGib: 80
+        RunningMode: AUTO_STOP
+        RunningModeAutoStopTimeoutInMinutes: 60
+        UserVolumeSizeGib: 50
+      Tags:
+        -
+          Key: Name
+          Value: Linux-Standard-Custom-Bundle

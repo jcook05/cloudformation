@@ -1,0 +1,67 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: WorkSpaces infrastructure
+
+Parameters:
+
+  BucketName:
+    Type: String
+    Default: testing101-cloudtrail-reporting
+    Description:  S3 BucketName.  If using an existing Bucket ensure appropriate permissions are applied. 
+  
+  TrailName:
+    Type: String
+    Default: testing101-cloudtrail
+    Description:  Cloud Trail Name
+
+Resources:  
+  S3Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: BucketOwnerFullControl
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketName: !Ref BucketName
+
+  CloudTrail:  
+    Type: AWS::CloudTrail::Trail
+    DependsOn:
+      - S3Bucket
+      - TrailBucketPolicy
+    Properties: 
+      EnableLogFileValidation: true
+      IncludeGlobalServiceEvents: true
+      IsLogging: true
+      IsMultiRegionTrail: true
+      S3BucketName: !Ref S3Bucket
+      Tags: 
+        - Key: CloudTrail
+          Value: AWS API Call Logging
+      TrailName: !Ref TrailName
+
+  TrailBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    DependsOn:
+      - S3Bucket
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: AWSCloudTrailAclCheck
+          Effect: Allow
+          Principal:
+            Service: 'cloudtrail.amazonaws.com'
+          Action: 's3:GetBucketAcl'
+          Resource: !Sub 'arn:aws:s3:::${S3Bucket}'
+        - Sid: AWSCloudTrailWrite
+          Effect: Allow
+          Principal:
+            Service: 'cloudtrail.amazonaws.com'
+          Action: 's3:PutObject'
+          Resource: !Sub 'arn:aws:s3:::${S3Bucket}/AWSLogs/${AWS::AccountId}/*'
+          Condition:
+            StringEquals:
+              's3:x-amz-acl': 'bucket-owner-full-control'

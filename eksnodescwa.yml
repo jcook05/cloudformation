@@ -196,8 +196,6 @@ Resources:
         - arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy
         - arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy
         - arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly
-        - arn:aws:iam::581564524907:policy/DevopsBucketRead
-        - arn:aws:iam::581564524907:policy/CloudWatchMemoryMetrics
 
   NodeSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -357,12 +355,12 @@ Resources:
 
             ## Update Cloud Watch Agent Config
 
-            aws s3 cp s3://sl-terraform-devops/cwa/${CWAConfigFile} config.json
+            aws s3 cp s3://test-terraform-devops/cwa/${CWAConfigFile} config.json
            
             cp config.json /opt/aws/amazon-cloudwatch-agent/bin/
 
             ## Add Logrotate
-            aws s3 cp s3://sl-terraform-devops/cwa/cwalogrotate cwalogrotate
+            aws s3 cp s3://test-terraform-devops/cwa/cwalogrotate cwalogrotate
           
             cp  cwalogrotate /etc/logrotate.d/cwalogrotate
 

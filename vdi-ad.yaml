@@ -1,0 +1,54 @@
+
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'VDI Solution'
+
+Parameters:
+
+  Admin :
+    Type : AWS::SSM::Parameter::Value<String>
+    NoEcho: true
+    Default: adminpw
+
+  dnsname: 
+    Type: String
+    Default: test.vdiad.com
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      -
+        Label:
+          default: AD Config
+        Parameters:
+          - Admin
+          - dnsname
+Resources:
+  SimpleAD: 
+    Type: AWS::DirectoryService::SimpleAD
+    Properties: 
+      Name: 
+        !Ref dnsname
+      Password: 
+        !Ref Admin
+      Size: "Small"
+      VpcSettings: 
+        SubnetIds: 
+        - Fn::Select: 
+            - 1
+            - Fn::Split:
+               - ','
+               - Fn::ImportValue: VdiSubnetIds   
+        - Fn::Select: 
+            - 2
+            - Fn::Split:
+               - ','
+               - Fn::ImportValue: VdiSubnetIds   
+        VpcId: !ImportValue VpcId
+
+Outputs:
+  DirectoryId:
+    Value: !Ref SimpleAD
+    Export: # added to export
+     Name: DirectoryId
+    
+         
