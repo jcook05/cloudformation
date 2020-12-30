@@ -26,4 +26,4 @@
     Template to create Cloud Trail logs. 
 
 ## wazuh-manager.yaml
-   Template to create a Wazuh Manager (https://wazuh.com/) Open Source Security Platform instance accessible via a Bastion Host. 
+    Template to create a Wazuh Manager (https://wazuh.com/) Open Source Security Platform instance accessible via a Bastion Host. 
